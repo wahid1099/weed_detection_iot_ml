@@ -145,6 +145,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }),
               const SizedBox(height: 24),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF22C55E),
+                ),
+                icon: const Icon(Icons.videocam, color: Colors.white),
+                label: const Text(
+                  'Open Camera',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/camera',
+                    arguments: [
+                      {'name': 'Camera 1', 'type': 'ESP32-CAM'},
+                      {'name': 'Camera 2', 'type': 'ESP32-CAM'},
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -168,8 +189,17 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (index) {
           if (index == 4) {
             Navigator.pushNamed(context, '/profile');
+          } else if (index == 3) {
+            Navigator.pushNamed(
+              context,
+              '/camera',
+              arguments: [
+                {'name': 'Camera 1', 'type': 'ESP32-CAM'},
+                {'name': 'Camera 2', 'type': 'ESP32-CAM'},
+              ],
+            );
           }
-          // You can handle other tabs here if needed
+          // Handle other tabs if needed
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

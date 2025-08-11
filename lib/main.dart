@@ -7,6 +7,7 @@ import 'features/home/screens/home_screen.dart';
 import 'features/home/screens/farm_details_screen.dart';
 import 'features/home/screens/add_farm_screen.dart';
 import 'features/home/screens/profile_screen.dart';
+import 'features/camera/screens/camera_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,6 +32,15 @@ class MyApp extends StatelessWidget {
         '/add_farm': (context) => const AddFarmScreen(),
         // Your register screen
         '/profile': (context) => const ProfileScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/camera') {
+          final cameras = settings.arguments as List<Map<String, dynamic>>;
+          return MaterialPageRoute(
+            builder: (_) => CameraScreen(cameras: cameras),
+          );
+        }
+        return null;
       },
     );
   }
