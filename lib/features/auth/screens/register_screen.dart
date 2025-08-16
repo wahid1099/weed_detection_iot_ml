@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,13 +12,14 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
 
   String selectedRole = 'Farmer';
   bool obscurePassword = true;
   bool obscureConfirm = true;
+  bool _isLoading = false;
 
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
@@ -24,240 +27,314 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final List<String> roles = ['Farmer', 'Agronomist', 'Admin'];
 
+  Future<void> _registerWithEmail() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await _authService.registerWithEmailAndPassword(
+        emailController.text.trim(),
+        passwordController.text,
+      );
+      _showSnackBar('Registration successful!', Colors.green);
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      _showSnackBar('Registration failed: ${e.toString()}', Colors.red);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _signUpWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithGoogle();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      _showSnackBar('Google sign-up failed: ${e.toString()}', Colors.red);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('Create Account'),
-        centerTitle: true,
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 420),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 40),
+
+                // Back Button
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        Icons.arrow_back_ios,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Logo
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.eco, color: Colors.white, size: 40),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Title
+                Text(
+                  'Create Account',
+                  style: GoogleFonts.poppins(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1F2937),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Join the smart farming revolution',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: const Color(0xFF6B7280),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      // Name Field
+                      _buildTextField(
+                        controller: nameController,
+                        label: 'Full Name',
+                        icon: Icons.person_outline,
+                        validator: (value) =>
+                            value!.isEmpty ? 'Enter your full name' : null,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Email Field
+                      _buildTextField(
+                        controller: emailController,
+                        label: 'Email',
+                        icon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Enter your email';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Enter a valid email';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Password Field
+                      _buildTextField(
+                        controller: passwordController,
+                        label: 'Password',
+                        icon: Icons.lock_outline,
+                        isPassword: true,
+                        validator: (value) =>
+                            value!.length < 6 ? 'Minimum 6 characters' : null,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Confirm Password Field
+                      _buildTextField(
+                        controller: confirmPasswordController,
+                        label: 'Confirm Password',
+                        icon: Icons.lock_outline,
+                        isPassword: true,
+                        isConfirmPassword: true,
+                        validator: (value) {
+                          if (value != passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Role Dropdown
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: DropdownButtonFormField<String>(
+                          value: selectedRole,
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: const Color(0xFF1F2937),
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Select Role',
+                            labelStyle: GoogleFonts.inter(
+                              color: const Color(0xFF6B7280),
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.group_outlined,
+                              color: Color(0xFF6B7280),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                          ),
+                          items: roles
+                              .map(
+                                (role) => DropdownMenuItem(
+                                  value: role,
+                                  child: Text(role),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() => selectedRole = value!);
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Register Button
+                      _buildPrimaryButton(
+                        text: 'Create Account',
+                        onPressed: _registerWithEmail,
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Divider
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Divider(color: Color(0xFFE5E7EB)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'or continue with',
+                              style: GoogleFonts.inter(
+                                color: const Color(0xFF6B7280),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          const Expanded(
+                            child: Divider(color: Color(0xFFE5E7EB)),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Google Sign Up Button
+                      _buildSocialButton(
+                        text: 'Continue with Google',
+                        icon: FontAwesomeIcons.google,
+                        onPressed: _signUpWithGoogle,
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Sign In Link
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account? ',
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF6B7280),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.pushNamed(context, '/login'),
+                            child: Text(
+                              'Sign In',
+                              style: GoogleFonts.inter(
+                                color: const Color(0xFF4F46E5),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ],
-            ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // Logo or illustration
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 18),
-                    child: Icon(
-                      Icons.eco_rounded,
-                      color: Colors.green.shade700,
-                      size: 48,
-                    ),
-                  ),
-
-                  // Name
-                  _modernTextField(
-                    controller: nameController,
-                    label: 'Full Name',
-                    icon: Icons.person,
-                    validator: (value) =>
-                        value!.isEmpty ? 'Enter your full name' : null,
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Username
-                  _modernTextField(
-                    controller: usernameController,
-                    label: 'Username',
-                    icon: Icons.account_circle,
-                    validator: (value) =>
-                        value!.isEmpty ? 'Enter your username' : null,
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Email
-                  _modernTextField(
-                    controller: emailController,
-                    label: 'Email Address',
-                    icon: Icons.email,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty)
-                        return 'Enter your email';
-                      if (!value.contains('@')) return 'Enter a valid email';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Password
-                  _modernTextField(
-                    controller: passwordController,
-                    label: 'Password',
-                    icon: Icons.lock,
-                    obscureText: obscurePassword,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: Colors.grey,
-                      ),
-                      onPressed: () =>
-                          setState(() => obscurePassword = !obscurePassword),
-                    ),
-                    validator: (value) =>
-                        value!.length < 6 ? 'Minimum 6 characters' : null,
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Confirm Password
-                  _modernTextField(
-                    controller: confirmPasswordController,
-                    label: 'Confirm Password',
-                    icon: Icons.lock_outline,
-                    obscureText: obscureConfirm,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        obscureConfirm
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: Colors.grey,
-                      ),
-                      onPressed: () =>
-                          setState(() => obscureConfirm = !obscureConfirm),
-                    ),
-                    validator: (value) {
-                      if (value != passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Role Dropdown
-                  DropdownButtonFormField<String>(
-                    value: selectedRole,
-                    decoration: InputDecoration(
-                      labelText: 'Select Role',
-                      prefixIcon: const Icon(Icons.group),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                    ),
-                    items: roles
-                        .map(
-                          (role) =>
-                              DropdownMenuItem(value: role, child: Text(role)),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedRole = value!;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Register Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade700,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Handle registration logic
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Registering...')),
-                          );
-                        }
-                      },
-                      child: const Text(
-                        'Register',
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-
-                  // OR Divider
-                  Row(
-                    children: [
-                      const Expanded(child: Divider(thickness: 1.2)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Text(
-                          'OR',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const Expanded(child: Divider(thickness: 1.2)),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Social Login Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _socialButton(
-                        icon: FontAwesomeIcons.google,
-                        label: 'Google',
-                        color: Colors.red.shade600,
-                        onPressed: () {},
-                      ),
-                      _socialButton(
-                        icon: FontAwesomeIcons.facebook,
-                        label: 'Facebook',
-                        color: Colors.blue.shade700,
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Already have account
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/login'),
-                    child: Text(
-                      'Already have an account? Login',
-                      style: TextStyle(
-                        color: Colors.green.shade700,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
@@ -265,24 +342,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _modernTextField({
+  Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required IconData icon,
     TextInputType? keyboardType,
-    bool obscureText = false,
-    Widget? suffixIcon,
+    bool isPassword = false,
+    bool isConfirmPassword = false,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      obscureText: obscureText,
+      obscureText: isPassword
+          ? (label.contains('Password') ? obscurePassword : obscureConfirm)
+          : false,
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        suffixIcon: suffixIcon,
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  (label.contains('Confirm') ? obscureConfirm : obscurePassword)
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                ),
+                onPressed: () {
+                  setState(() {
+                    if (label.contains('Confirm')) {
+                      obscureConfirm = !obscureConfirm;
+                    } else {
+                      obscurePassword = !obscurePassword;
+                    }
+                  });
+                },
+              )
+            : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.grey[100],
@@ -290,24 +386,98 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _socialButton({
-    required IconData icon,
-    required String label,
-    required Color color,
+  Widget _buildPrimaryButton({
+    required String text,
     required VoidCallback onPressed,
   }) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: FaIcon(icon, color: color, size: 22),
-      label: Text(
-        label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
-      style: OutlinedButton.styleFrom(
-        side: BorderSide(color: color.withOpacity(0.6)),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: Colors.white,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _isLoading ? null : onPressed,
+          borderRadius: BorderRadius.circular(16),
+          child: Center(
+            child: _isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    text,
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialButton({
+    required String text,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _isLoading ? null : onPressed,
+          borderRadius: BorderRadius.circular(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(icon, color: const Color(0xFF1F2937), size: 20),
+              const SizedBox(width: 12),
+              Text(
+                text,
+                style: GoogleFonts.inter(
+                  color: const Color(0xFF1F2937),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
