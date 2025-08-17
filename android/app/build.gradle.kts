@@ -10,8 +10,10 @@ plugins {
 
 android {
     namespace = "com.example.weed_detection_iot_ml"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+   compileSdk = 35        // use latest compile SDK
+
+    ndkVersion = "27.0.12077973"  // override NDK version
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -27,8 +29,8 @@ android {
         applicationId = "com.example.weed_detection_iot_ml"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 23
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

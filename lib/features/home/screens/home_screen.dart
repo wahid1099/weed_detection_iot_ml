@@ -1,4 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../models/sensor_data.dart';
+import '../../../services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -8,32 +12,40 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Map<String, dynamic>> farms = [
-    {
-      'name': 'North Field',
-      'temperature': 24,
-      'humidity': 65,
-      'growth': 42,
-      'updated': '5 min ago',
-      'expanded': false,
-    },
-    {
-      'name': 'South Field',
-      'temperature': 23,
-      'humidity': 68,
-      'growth': 45,
-      'updated': '15 min ago',
-      'expanded': false,
-    },
-    {
-      'name': 'East Field',
-      'temperature': 25,
-      'humidity': 62,
-      'growth': 40,
-      'updated': '30 min ago',
-      'expanded': false,
-    },
-  ];
+  SensorData? latestSensorData;
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLatestSensorData();
+  }
+
+  Future<void> _fetchLatestSensorData() async {
+    try {
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      final data = await ApiService.getLatestSensorData();
+
+      if (mounted) {
+        setState(() {
+          latestSensorData = data;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          errorMessage = e.toString();
+          isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,181 +57,452 @@ class _HomeScreenState extends State<HomeScreen> {
         toolbarHeight: 0,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: ListView(
-            children: [
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+        child: RefreshIndicator(
+          onRefresh: _fetchLatestSensorData,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListView(
+              children: [
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_getGreeting()}, Farmer',
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF222222),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getCurrentTime(),
+                          style: GoogleFonts.inter(
+                            color: Colors.black54,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          _getGreetingIcon(),
+                          color: _getGreetingIconColor(),
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          latestSensorData?.temperatureDisplay ?? 'N/A',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Icon(Icons.eco, color: Color(0xFF22C55E)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Smart Farm Monitor',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF22C55E),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Sensor Status Cards
+                if (isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF22C55E),
+                      ),
+                    ),
+                  )
+                else if (errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Unable to load sensor data. Pull to refresh.',
+                            style: GoogleFonts.inter(
+                              color: Colors.red.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Good morning, Md Wahid',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF222222),
+                    children: [
+                      Row(
+                        children: [
+                          _SensorCard(
+                            icon: Icons.thermostat,
+                            value:
+                                latestSensorData?.temperatureDisplay ?? 'N/A',
+                            label: 'Temperature',
+                            color: const Color(0xFF3366FF),
+                          ),
+                          const SizedBox(width: 16),
+                          _SensorCard(
+                            icon: Icons.water_drop,
+                            value: latestSensorData?.humidityDisplay ?? 'N/A',
+                            label: 'Humidity',
+                            color: const Color(0xFF22C55E),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          _SensorCard(
+                            icon: Icons.grass,
+                            value:
+                                latestSensorData?.soilMoistureDisplay ?? 'N/A',
+                            label: 'Soil Moisture',
+                            color: const Color(0xFF8B5CF6),
+                          ),
+                          const SizedBox(width: 16),
+                          _SensorCard(
+                            icon: Icons.science,
+                            value: latestSensorData?.phDisplay ?? 'N/A',
+                            label: 'pH Level',
+                            color: const Color(0xFFF59E0B),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                const SizedBox(height: 24),
+
+                // Farm Card Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Your Farms',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: const Color(0xFF222222),
+                      ),
+                    ),
+                    if (latestSensorData != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF22C55E).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Live',
+                          style: GoogleFonts.inter(
+                            color: const Color(0xFF22C55E),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        '9:45 AM',
-                        style: TextStyle(color: Colors.black54, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: const [
-                      Icon(Icons.wb_sunny, color: Color(0xFFFFC700)),
-                      SizedBox(width: 4),
-                      Text(
-                        '24°C',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: const [
-                  Icon(Icons.apps, color: Color(0xFF22C55E)),
-                  SizedBox(width: 6),
-                  Text(
-                    'Greenfield Farm',
-                    style: TextStyle(
-                      color: Color(0xFF22C55E),
-                      fontWeight: FontWeight.w600,
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Farm Card
+                if (latestSensorData != null)
+                  _FarmCard(
+                    sensorData: latestSensorData!,
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/farm_details',
+                        arguments: latestSensorData,
+                      );
+                    },
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.cloud_off,
+                          size: 48,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No farm data available',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Pull to refresh or check your connection',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  _StatCard(
-                    icon: Icons.apps,
-                    value: '12',
-                    label: 'Total Farms',
-                    color: const Color(0xFF22C55E),
+
+                const SizedBox(height: 24),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF22C55E),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.videocam, color: Colors.white),
+                        label: Text(
+                          'Camera',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/camera',
+                            arguments: [
+                              {'name': 'Camera 1', 'type': 'ESP32-CAM'},
+                              {'name': 'Camera 2', 'type': 'ESP32-CAM'},
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3366FF),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.refresh, color: Colors.white),
+                        label: Text(
+                          'Refresh',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: _fetchLatestSensorData,
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Debug button (remove in production)
+                if (kDebugMode)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                      ),
+                      onPressed: () async {
+                        try {
+                          final status = await ApiService.getConnectionStatus();
+                          final data = await ApiService.getSensorHistory();
+
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(status),
+                                    Text('Records: ${data.length}'),
+                                    if (data.isNotEmpty)
+                                      Text('Latest: ${data.first.firmName}'),
+                                  ],
+                                ),
+                                backgroundColor: data.isNotEmpty
+                                    ? Colors.green
+                                    : Colors.orange,
+                                duration: const Duration(seconds: 4),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Test Failed: ${e.toString()}'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: const Text(
+                        'Test API Connection',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 16),
-                  _StatCard(
-                    icon: Icons.wifi,
-                    value: '48',
-                    label: 'Active Sensors',
-                    color: const Color(0xFF3366FF),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Your Farms',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Color(0xFF222222),
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...farms.asMap().entries.map((entry) {
-                int idx = entry.key;
-                var farm = entry.value;
-                return _FarmCard(
-                  farm: farm,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/farm_details',
-                      arguments: farm,
-                    );
-                  },
-                  onExpand: () {
-                    setState(() {
-                      farms[idx]['expanded'] = !farms[idx]['expanded'];
-                    });
-                  },
-                );
-              }),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF22C55E),
-                ),
-                icon: const Icon(Icons.videocam, color: Colors.white),
-                label: const Text(
-                  'Open Camera',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/camera',
-                    arguments: [
-                      {'name': 'Camera 1', 'type': 'ESP32-CAM'},
-                      {'name': 'Camera 2', 'type': 'ESP32-CAM'},
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-            ],
+
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF22C55E),
-        onPressed: () async {
-          final newFarm = await Navigator.pushNamed(context, '/add_farm');
-          if (newFarm != null && newFarm is Map<String, dynamic>) {
-            setState(() {
-              farms.add(newFarm);
-            });
-          }
-        },
-        child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: const Color(0xFF22C55E),
         unselectedItemColor: Colors.black38,
+        type: BottomNavigationBarType.fixed,
         onTap: (index) {
-          if (index == 4) {
-            Navigator.pushNamed(context, '/profile');
-          } else if (index == 3) {
-            Navigator.pushNamed(
-              context,
-              '/camera',
-              arguments: [
-                {'name': 'Camera 1', 'type': 'ESP32-CAM'},
-                {'name': 'Camera 2', 'type': 'ESP32-CAM'},
-              ],
-            );
+          switch (index) {
+            case 0:
+              // Already on home
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/control');
+              break;
+            case 2:
+              // Sensors - could add sensor details screen
+              break;
+            case 3:
+              Navigator.pushNamed(
+                context,
+                '/camera',
+                arguments: [
+                  {'name': 'Camera 1', 'type': 'ESP32-CAM'},
+                  {'name': 'Camera 2', 'type': 'ESP32-CAM'},
+                ],
+              );
+              break;
+            case 4:
+              Navigator.pushNamed(context, '/profile');
+              break;
           }
-          // Handle other tabs if needed
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.apps), label: 'Farms'),
-          BottomNavigationBarItem(icon: Icon(Icons.wifi), label: 'Sensors'),
-          BottomNavigationBarItem(icon: Icon(Icons.videocam), label: 'Video'),
+          BottomNavigationBarItem(icon: Icon(Icons.gamepad), label: 'Control'),
+          BottomNavigationBarItem(icon: Icon(Icons.sensors), label: 'Sensors'),
+          BottomNavigationBarItem(icon: Icon(Icons.videocam), label: 'Camera'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
   }
+
+  String _getCurrentTime() {
+    final now = DateTime.now();
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  String _getGreeting() {
+    final now = DateTime.now();
+    final hour = now.hour;
+
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  }
+
+  IconData _getGreetingIcon() {
+    final now = DateTime.now();
+    final hour = now.hour;
+
+    if (hour >= 5 && hour < 12) {
+      return Icons.wb_sunny; // Morning - Sun
+    } else if (hour >= 12 && hour < 17) {
+      return Icons.wb_sunny_outlined; // Afternoon - Bright sun
+    } else if (hour >= 17 && hour < 21) {
+      return Icons.wb_twilight; // Evening - Sunset
+    } else {
+      return Icons.nightlight_round; // Night - Moon
+    }
+  }
+
+  Color _getGreetingIconColor() {
+    final now = DateTime.now();
+    final hour = now.hour;
+
+    if (hour >= 5 && hour < 12) {
+      return const Color(0xFFFFC700); // Morning - Golden yellow
+    } else if (hour >= 12 && hour < 17) {
+      return const Color(0xFFFF8C00); // Afternoon - Orange
+    } else if (hour >= 17 && hour < 21) {
+      return const Color(0xFFFF6B35); // Evening - Sunset orange
+    } else {
+      return const Color(0xFF4A90E2); // Night - Blue
+    }
+  }
 }
 
-class _StatCard extends StatelessWidget {
+class _SensorCard extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
   final Color color;
 
-  const _StatCard({
+  const _SensorCard({
     required this.icon,
     required this.value,
     required this.label,
@@ -230,28 +513,45 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.only(right: 0),
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 12),
             Text(
               value,
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: color,
+                fontSize: 18,
+                color: const Color(0xFF1F2937),
               ),
             ),
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(color: Colors.black54, fontSize: 13),
+              style: GoogleFonts.inter(
+                color: const Color(0xFF6B7280),
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -261,76 +561,188 @@ class _StatCard extends StatelessWidget {
 }
 
 class _FarmCard extends StatelessWidget {
-  final Map<String, dynamic> farm;
+  final SensorData sensorData;
   final VoidCallback onTap;
-  final VoidCallback onExpand;
 
-  const _FarmCard({
-    required this.farm,
-    required this.onTap,
-    required this.onExpand,
-  });
+  const _FarmCard({required this.sensorData, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Column(
-          children: [
-            ListTile(
-              title: Text(
-                farm['name'],
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text('Updated ${farm['updated']}'),
-              trailing: IconButton(
-                icon: Icon(
-                  farm['expanded'] ? Icons.expand_less : Icons.expand_more,
-                  color: Colors.grey[700],
-                ),
-                onPressed: onExpand,
-              ),
-            ),
-            if (farm['expanded'])
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.thermostat, color: Color(0xFF3366FF)),
-                        const SizedBox(width: 4),
-                        Text('${farm['temperature']}°C'),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF22C55E,
+                            ).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.eco,
+                            color: Color(0xFF22C55E),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              sensorData.firmName,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: const Color(0xFF1F2937),
+                              ),
+                            ),
+                            Text(
+                              _getTimeAgo(sensorData.timestamp),
+                              style: GoogleFonts.inter(
+                                color: const Color(0xFF6B7280),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                    Row(
-                      children: [
-                        const Icon(Icons.water_drop, color: Color(0xFF22C55E)),
-                        const SizedBox(width: 4),
-                        Text('${farm['humidity']}%'),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.grass, color: Color(0xFF22C55E)),
-                        const SizedBox(width: 4),
-                        Text('${farm['growth']}%'),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF22C55E).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF22C55E),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Active',
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF22C55E),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-          ],
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _QuickStat(
+                      icon: Icons.thermostat,
+                      value: sensorData.temperatureDisplay,
+                      color: const Color(0xFF3366FF),
+                    ),
+                    _QuickStat(
+                      icon: Icons.water_drop,
+                      value: sensorData.humidityDisplay,
+                      color: const Color(0xFF22C55E),
+                    ),
+                    _QuickStat(
+                      icon: Icons.grass,
+                      value: sensorData.soilMoistureDisplay,
+                      color: const Color(0xFF8B5CF6),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  String _getTimeAgo(String timestamp) {
+    try {
+      final dateTime = DateTime.parse(timestamp);
+      final now = DateTime.now();
+      final difference = now.difference(dateTime);
+
+      if (difference.inMinutes < 1) {
+        return 'Just now';
+      } else if (difference.inMinutes < 60) {
+        return '${difference.inMinutes}m ago';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours}h ago';
+      } else {
+        return '${difference.inDays}d ago';
+      }
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
+}
+
+class _QuickStat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final Color color;
+
+  const _QuickStat({
+    required this.icon,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 4),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF374151),
+          ),
+        ),
+      ],
     );
   }
 }

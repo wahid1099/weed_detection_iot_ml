@@ -27,13 +27,35 @@ class _CameraScreenState extends State<CameraScreen> {
                   height: 300,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/field.jpg'), // Placeholder
-                      fit: BoxFit.cover,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.green.shade800, Colors.green.shade600],
                     ),
                   ),
                   child: Stack(
                     children: [
+                      // Camera preview placeholder
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.videocam,
+                              size: 48,
+                              color: Colors.white.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Camera Preview',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       // Example detected objects
                       Positioned(
                         left: 100,
@@ -41,7 +63,19 @@ class _CameraScreenState extends State<CameraScreen> {
                         child: Container(
                           width: 80,
                           height: 80,
-                          color: Colors.green.withOpacity(0.5),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.green, width: 2),
+                            color: Colors.green.withValues(alpha: 0.2),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Weed',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                       Positioned(
@@ -50,7 +84,19 @@ class _CameraScreenState extends State<CameraScreen> {
                         child: Container(
                           width: 80,
                           height: 80,
-                          color: Colors.green.withOpacity(0.5),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.green, width: 2),
+                            color: Colors.green.withValues(alpha: 0.2),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Weed',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                       Positioned(

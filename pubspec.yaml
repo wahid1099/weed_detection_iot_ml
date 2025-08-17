@@ -35,6 +35,9 @@ dependencies:
   # UI
   google_fonts: ^6.2.1
 
+  # HTTP
+  http: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
