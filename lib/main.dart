@@ -11,6 +11,8 @@ import 'features/home/screens/add_farm_screen.dart';
 import 'features/home/screens/profile_screen.dart';
 import 'features/camera/screens/camera_screen.dart';
 import 'features/control/screens/control_car_screen.dart';
+import 'features/notifications/screens/notifications_screen.dart';
+import 'features/weed_detection/screens/weed_detection_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +38,8 @@ class MyApp extends StatelessWidget {
         '/farm_details': (context) => const FarmDetailsScreen(),
         '/add_farm': (context) => const AddFarmScreen(),
         '/control': (context) => const ControlCarScreen(),
+        '/notifications': (context) => const NotificationsScreen(),
+        '/weed_detection': (context) => const WeedDetectionScreen(),
         // Your register screen
         '/profile': (context) => const ProfileScreen(),
       },

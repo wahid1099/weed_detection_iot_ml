@@ -52,9 +52,53 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF22C55E),
         elevation: 0,
-        toolbarHeight: 0,
+        title: Text(
+          'FarmGuard',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications_outlined, color: Colors.white),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '3',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: Colors.white),
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+          ),
+        ],
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -415,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.pushNamed(context, '/control');
               break;
             case 2:
-              // Sensors - could add sensor details screen
+              Navigator.pushNamed(context, '/weed_detection');
               break;
             case 3:
               Navigator.pushNamed(
@@ -435,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.gamepad), label: 'Control'),
-          BottomNavigationBarItem(icon: Icon(Icons.sensors), label: 'Sensors'),
+          BottomNavigationBarItem(icon: Icon(Icons.grass), label: 'Detection'),
           BottomNavigationBarItem(icon: Icon(Icons.videocam), label: 'Camera'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],

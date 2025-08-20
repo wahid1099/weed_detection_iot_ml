@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -382,7 +381,7 @@ class _ControlCarScreenState extends State<ControlCarScreen> {
               // Already on control
               break;
             case 2:
-              // Sensors - could add sensor details screen
+              Navigator.pushNamed(context, '/weed_detection');
               break;
             case 3:
               Navigator.pushNamed(
@@ -402,7 +401,7 @@ class _ControlCarScreenState extends State<ControlCarScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.gamepad), label: 'Control'),
-          BottomNavigationBarItem(icon: Icon(Icons.sensors), label: 'Sensors'),
+          BottomNavigationBarItem(icon: Icon(Icons.grass), label: 'Detection'),
           BottomNavigationBarItem(icon: Icon(Icons.videocam), label: 'Camera'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
