@@ -372,9 +372,6 @@ class _WeedDetectionScreenState extends State<WeedDetectionScreen> {
                 ],
               );
               break;
-            case 4:
-              Navigator.pushNamed(context, '/profile');
-              break;
           }
         },
         items: const [
@@ -382,7 +379,6 @@ class _WeedDetectionScreenState extends State<WeedDetectionScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.gamepad), label: 'Control'),
           BottomNavigationBarItem(icon: Icon(Icons.grass), label: 'Detection'),
           BottomNavigationBarItem(icon: Icon(Icons.videocam), label: 'Camera'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

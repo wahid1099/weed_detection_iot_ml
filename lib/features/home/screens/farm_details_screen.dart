@@ -253,6 +253,39 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
 
               const SizedBox(height: 24),
 
+              // Charts Section
+              if (farmHistory.length > 1) ...[
+                Text(
+                  'Sensor Trends',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Temperature Chart
+                _buildChartContainer(
+                  title: 'Temperature Trend',
+                  icon: Icons.thermostat,
+                  color: const Color(0xFF3366FF),
+                  chart: _buildTemperatureChart(),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Humidity Chart
+                _buildChartContainer(
+                  title: 'Humidity Trend',
+                  icon: Icons.water_drop,
+                  color: const Color(0xFF22C55E),
+                  chart: _buildHumidityChart(),
+                ),
+
+                const SizedBox(height: 24),
+              ],
+
               // Raw Data Section
               Text(
                 'Raw Sensor Values',
@@ -307,191 +340,6 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
               ),
 
               const SizedBox(height: 24),
-
-              // Charts Section
-              if (farmHistory.length > 1) ...[
-                Text(
-                  'Sensor Trends',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Temperature Chart
-                Container(
-                  height: 250,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFF3366FF,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(
-                              Icons.thermostat,
-                              color: Color(0xFF3366FF),
-                              size: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Temperature Trend',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: const Color(0xFF1F2937),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(child: _buildTemperatureChart()),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Humidity Chart
-                Container(
-                  height: 250,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFF22C55E,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(
-                              Icons.water_drop,
-                              color: Color(0xFF22C55E),
-                              size: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Humidity Trend',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: const Color(0xFF1F2937),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(child: _buildHumidityChart()),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Multi-sensor Chart
-                Container(
-                  height: 300,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFF8B5CF6,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(
-                              Icons.analytics,
-                              color: Color(0xFF8B5CF6),
-                              size: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Multi-Sensor Overview',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: const Color(0xFF1F2937),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Legend
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildLegendItem(
-                            'Temperature',
-                            const Color(0xFF3366FF),
-                          ),
-                          _buildLegendItem('Humidity', const Color(0xFF22C55E)),
-                          _buildLegendItem('pH Level', const Color(0xFFF59E0B)),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(child: _buildMultiSensorChart()),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-              ],
 
               // History Section
               if (isLoading)
@@ -549,24 +397,55 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
     );
   }
 
-  String _getTimeAgo(String timestamp) {
-    try {
-      final dateTime = DateTime.parse(timestamp);
-      final now = DateTime.now();
-      final difference = now.difference(dateTime);
-
-      if (difference.inMinutes < 1) {
-        return 'Just now';
-      } else if (difference.inMinutes < 60) {
-        return '${difference.inMinutes} minutes ago';
-      } else if (difference.inHours < 24) {
-        return '${difference.inHours} hours ago';
-      } else {
-        return '${difference.inDays} days ago';
-      }
-    } catch (e) {
-      return 'Unknown time';
-    }
+  Widget _buildChartContainer({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required Widget chart,
+  }) {
+    return Container(
+      height: 250,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, color: color, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  color: const Color(0xFF1F2937),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(child: chart),
+        ],
+      ),
+    );
   }
 
   Widget _buildTemperatureChart() {
@@ -599,9 +478,8 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 5,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
-          },
+          getDrawingHorizontalLine: (value) =>
+              FlLine(color: Colors.grey.shade200, strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
           show: true,
@@ -668,14 +546,13 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
             isStrokeCapRound: true,
             dotData: FlDotData(
               show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 4,
-                  color: const Color(0xFF3366FF),
-                  strokeWidth: 2,
-                  strokeColor: Colors.white,
-                );
-              },
+              getDotPainter: (spot, percent, barData, index) =>
+                  FlDotCirclePainter(
+                    radius: 4,
+                    color: const Color(0xFF3366FF),
+                    strokeWidth: 2,
+                    strokeColor: Colors.white,
+                  ),
             ),
             belowBarData: BarAreaData(
               show: true,
@@ -724,9 +601,8 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 10,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
-          },
+          getDrawingHorizontalLine: (value) =>
+              FlLine(color: Colors.grey.shade200, strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
           show: true,
@@ -793,14 +669,13 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
             isStrokeCapRound: true,
             dotData: FlDotData(
               show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 4,
-                  color: const Color(0xFF22C55E),
-                  strokeWidth: 2,
-                  strokeColor: Colors.white,
-                );
-              },
+              getDotPainter: (spot, percent, barData, index) =>
+                  FlDotCirclePainter(
+                    radius: 4,
+                    color: const Color(0xFF22C55E),
+                    strokeWidth: 2,
+                    strokeColor: Colors.white,
+                  ),
             ),
             belowBarData: BarAreaData(
               show: true,
@@ -819,184 +694,24 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
     );
   }
 
-  Widget _buildMultiSensorChart() {
-    final tempSpots = <FlSpot>[];
-    final humiditySpots = <FlSpot>[];
-    final phSpots = <FlSpot>[];
+  String _getTimeAgo(String timestamp) {
+    try {
+      final dateTime = DateTime.parse(timestamp);
+      final now = DateTime.now();
+      final difference = now.difference(dateTime);
 
-    final sortedData = List<SensorData>.from(farmHistory)
-      ..sort(
-        (a, b) =>
-            DateTime.parse(a.timestamp).compareTo(DateTime.parse(b.timestamp)),
-      );
-
-    for (int i = 0; i < sortedData.length && i < 8; i++) {
-      final data = sortedData[i];
-      if (data.temperature != null) {
-        // Normalize temperature to 0-100 scale for comparison
-        tempSpots.add(FlSpot(i.toDouble(), (data.temperature! / 50) * 100));
+      if (difference.inMinutes < 1) {
+        return 'Just now';
+      } else if (difference.inMinutes < 60) {
+        return '${difference.inMinutes} minutes ago';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours} hours ago';
+      } else {
+        return '${difference.inDays} days ago';
       }
-      if (data.humidity != null) {
-        humiditySpots.add(FlSpot(i.toDouble(), data.humidity!));
-      }
-      if (data.phValue != null) {
-        // Normalize pH (0-14) to 0-100 scale
-        phSpots.add(FlSpot(i.toDouble(), (data.phValue! / 14) * 100));
-      }
+    } catch (e) {
+      return 'Unknown time';
     }
-
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: false,
-          horizontalInterval: 25,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
-          },
-        ),
-        titlesData: FlTitlesData(
-          show: true,
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              interval: 1,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                if (value.toInt() < sortedData.length) {
-                  final data = sortedData[value.toInt()];
-                  final time = DateTime.parse(data.timestamp);
-                  return SideTitleWidget(
-                    axisSide: meta.axisSide,
-                    child: Text(
-                      '${time.hour}:${time.minute.toString().padLeft(2, '0')}',
-                      style: GoogleFonts.inter(
-                        color: Colors.grey.shade600,
-                        fontSize: 9,
-                      ),
-                    ),
-                  );
-                }
-                return const Text('');
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: 25,
-              reservedSize: 35,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                return Text(
-                  '${value.toInt()}',
-                  style: GoogleFonts.inter(
-                    color: Colors.grey.shade600,
-                    fontSize: 10,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        minX: 0,
-        maxX: (sortedData.length - 1).toDouble(),
-        minY: 0,
-        maxY: 100,
-        lineBarsData: [
-          // Temperature line
-          if (tempSpots.isNotEmpty)
-            LineChartBarData(
-              spots: tempSpots,
-              isCurved: true,
-              color: const Color(0xFF3366FF),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, percent, barData, index) {
-                  return FlDotCirclePainter(
-                    radius: 3,
-                    color: const Color(0xFF3366FF),
-                    strokeWidth: 1,
-                    strokeColor: Colors.white,
-                  );
-                },
-              ),
-              belowBarData: BarAreaData(show: false),
-            ),
-          // Humidity line
-          if (humiditySpots.isNotEmpty)
-            LineChartBarData(
-              spots: humiditySpots,
-              isCurved: true,
-              color: const Color(0xFF22C55E),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, percent, barData, index) {
-                  return FlDotCirclePainter(
-                    radius: 3,
-                    color: const Color(0xFF22C55E),
-                    strokeWidth: 1,
-                    strokeColor: Colors.white,
-                  );
-                },
-              ),
-              belowBarData: BarAreaData(show: false),
-            ),
-          // pH line
-          if (phSpots.isNotEmpty)
-            LineChartBarData(
-              spots: phSpots,
-              isCurved: true,
-              color: const Color(0xFFF59E0B),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, percent, barData, index) {
-                  return FlDotCirclePainter(
-                    radius: 3,
-                    color: const Color(0xFFF59E0B),
-                    strokeWidth: 1,
-                    strokeColor: Colors.white,
-                  );
-                },
-              ),
-              belowBarData: BarAreaData(show: false),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegendItem(String label, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 10,
-            color: const Color(0xFF6B7280),
-          ),
-        ),
-      ],
-    );
   }
 }
 

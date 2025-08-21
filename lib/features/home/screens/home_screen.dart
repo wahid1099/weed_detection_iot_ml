@@ -471,9 +471,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               );
               break;
-            case 4:
-              Navigator.pushNamed(context, '/profile');
-              break;
           }
         },
         items: const [
@@ -481,7 +478,6 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.gamepad), label: 'Control'),
           BottomNavigationBarItem(icon: Icon(Icons.grass), label: 'Detection'),
           BottomNavigationBarItem(icon: Icon(Icons.videocam), label: 'Camera'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
@@ -489,9 +485,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _getCurrentTime() {
     final now = DateTime.now();
-    final hour = now.hour.toString().padLeft(2, '0');
+    final hour = now.hour;
     final minute = now.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return '$displayHour:$minute $period';
   }
 
   String _getGreeting() {
